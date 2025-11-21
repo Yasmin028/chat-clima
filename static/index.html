@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Chat Multiusuario de Clima</title>
+  <style>
+    body { font-family: sans-serif; background: #0f172a; color: #e5e7eb; }
+    .container { max-width: 600px; margin: auto; padding: 20px; }
+    .messages { height: 50vh; overflow-y: auto; background: #111827; padding: 10px; border-radius: 8px; }
+    .msg { margin: 5px 0; }
+    .user { font-weight: bold; color: #60a5fa; }
+    input, button { padding: 10px; margin: 5px; border-radius: 8px; }
+    button { background: #60a5fa; border: none; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🌍 Chat Multiusuario de Clima</h2>
+    <div id="messages" class="messages"></div>
+    <input id="user" placeholder="Tu nombre">
+    <input id="city" placeholder="Tu ciudad">
+    <input id="text" placeholder="Escribe un mensaje">
+    <button onclick="sendMessage()">Enviar</button>
+  </div>
+  <script>
+    async function fetchMessages() {
+      const res = await fetch("/messages");
+      const data = await res.json();
+      const box = document.getElementById("messages");
+      box.innerHTML = "";
+      data.forEach(m => {
+        const div = document.createElement("div");
+        div.className = "msg";
+        div.innerHTML = `<span class="user">${m.user}:</span> ${m.text} ${m.city ? "(📍 " + m.city + ")" : ""}`;
+        box.appendChild(div);
+      });
+      box.scrollTop = box.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const user = document.getElementById("user").value || "anon";
+      const city = document.getElementById("city").value;
+      const text = document.getElementById("text").value;
+      if (!text.trim()) return;
+      await fetch("/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user, text, city })
+      });
+      document.getElementById("text").value = "";
+      fetchMessages();
+    }
+
+    setInterval(fetchMessages, 2000);
+    fetchMessages();
+  </script>
+</body>
+</html>
